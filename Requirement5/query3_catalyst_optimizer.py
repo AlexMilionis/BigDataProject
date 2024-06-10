@@ -41,7 +41,6 @@ print("Explain for second join:")
 df_zips_income.explain("simple")
 print('===========================')
 
-# remove columns lat, lon, date, community
 df_zips_income = df_zips_income.select(col('Zip Code'), col('Vict Descent'), col('Estimated Median Income'))
 
 # convert income to integer
@@ -59,11 +58,11 @@ bottom_3 = distinct_zip_income.orderBy(col("Estimated Median Income").asc()).lim
 df_zips_income = df_zips_income.select(col('Zip Code'), col('Vict Descent'))
 df_zips_income = df_zips_income.withColumnRenamed('Vict Descent', 'victim descent')
 
-top_3          = top_3.select(col('Zip Code'))
-bottom_3       = bottom_3.select(col('Zip Code'))
+top_3_zips    = [row['Zip Code'] for row in top_3.collect()]
+bottom_3_zips = [row['Zip Code'] for row in bottom_3.collect()]
 
-top_3    = df_zips_income.join(top_3, "Zip Code", 'inner')
-bottom_3 = df_zips_income.join(bottom_3, "Zip Code", 'inner')
+top_3    = df_zips_income.filter(col('Zip Code').isin(top_3_zips))
+bottom_3 = df_zips_income.filter(col('Zip Code').isin(bottom_3_zips))
 
 top_3 = top_3.groupBy('victim descent').agg(count('*').alias('total victims'))
 top_3 = top_3.orderBy(col('total victims').desc())
